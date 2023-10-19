@@ -9,6 +9,7 @@ import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.plugin.java.JavaPlugin;
+import org.jt.ktp.Listeners.BD;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -21,7 +22,7 @@ public final class Ktp extends JavaPlugin implements Listener {
     public void onEnable() {
         // Plugin startup logic
         Bukkit.getConsoleSender().sendMessage("NP Project enabled");
-
+        getServer().getPluginManager().registerEvents(new BD(), this);
     }
 
     @Override
@@ -52,7 +53,7 @@ public final class Ktp extends JavaPlugin implements Listener {
                 Location bs = lb.clone();
                 bs.setX(bs.getX()+k);
                 bs.setZ(bs.getZ()+i);
-                bs.getBlock().setType(Material.WHITE_CONCRETE);
+                bs.getBlock().setType(Material.REINFORCED_DEEPSLATE);
             }
         }
         Location fb = lb.clone();
@@ -61,7 +62,6 @@ public final class Ktp extends JavaPlugin implements Listener {
         Location current = fb.clone();
         int[] checked = check(fb);
         fb.getBlock().setType(Material.AIR);
-        p.sendMessage(Arrays.toString(checked));
 
         ArrayList cango = new ArrayList();
         if (checked[0] == 1) cango.add(0);
@@ -103,8 +103,9 @@ public final class Ktp extends JavaPlugin implements Listener {
         }
         history.add(current.clone());
         history2.put(current, 1);
-        while (fb != current) {
-            next(current, p ,  history, history2);
+        boolean ft =true;
+        while (ft) {
+            ft = next(current, p, history, history2);
         }
 
 
@@ -166,7 +167,7 @@ public final class Ktp extends JavaPlugin implements Listener {
 
     }
 
-    public void next(Location current, Player p, ArrayList<Location> history, HashMap<Location, Integer> history2) {
+    public boolean next(Location current, Player p, ArrayList<Location> history, HashMap<Location, Integer> history2) {
         int[] checked = check(current);
 
         ArrayList cango = new ArrayList();
@@ -180,10 +181,9 @@ public final class Ktp extends JavaPlugin implements Listener {
             history2.put(current, 2);
             int back = 2;
             for (int i=0; i<50; back++) {
+                if (history.size()-back < 0 ) return false;
                 Location bac = history.get(history.size()-back);
-                if (history.size()-back < 0 ) return;
                 //p.sendMessage(String.valueOf(history2.get(bac)));
-                    p.sendMessage(String.valueOf(history2.get(bac)));
                     int[] checked1 = check(bac);
                     ArrayList cango1 = new ArrayList();
                     if (checked1[0] == 1) cango1.add(0);
@@ -194,12 +194,12 @@ public final class Ktp extends JavaPlugin implements Listener {
                     //p.sendMessage(String.valueOf(bac));
                     if (cango1.size() > 0) {
                         next(bac, p, history, history2);
-                        return;
+                        return true;
                     }
                     history2.put(bac, 2);
             }
 
-            return;
+            return true;
         }
 
         Random random = new Random();
@@ -233,11 +233,10 @@ public final class Ktp extends JavaPlugin implements Listener {
 
         }
         history.add(current.clone());
-        p.sendMessage(String.valueOf(history.get(1)));
         history2.put(current, 1);
 
 
-        return;
+        return true;
 
 
 

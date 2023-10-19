@@ -1,0 +1,8 @@
+<component name="ArtifactManager">
+  <artifact type="jar" name="unnamed">
+    <output-path>$PROJECT_DIR$/../../../../Data/server/놀이터서버 - 1123/plugins</output-path>
+    <root id="archive" name="unnamed.jar">
+      <element id="module-output" name="Ktp" />
+    </root>
+  </artifact>
+</component>

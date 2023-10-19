@@ -1,0 +1,11 @@
+name: Ktp
+version: '${project.version}'
+main: org.jt.ktp.Ktp
+api-version: '1.20'
+authors: [ jajader ]
+description: I really want to Maze
+
+commands:
+  Maze:
+    description: Testing
+    usage: testing

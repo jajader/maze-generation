@@ -175,7 +175,7 @@ public final class Ktp extends JavaPlugin implements Listener {
         if (checked[2] == 1) cango.add(2);
         if (checked[3] == 1) cango.add(3);
 
-
+//
         if (cango.size() == 0) {
             history2.put(current, 2);
             int back = 2;

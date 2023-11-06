@@ -9,3 +9,7 @@ commands:
   Maze:
     description: Testing
     usage: testing
+
+  SW:
+    description: Testing
+    usage: testing

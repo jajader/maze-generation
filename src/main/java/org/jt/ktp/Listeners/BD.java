@@ -25,7 +25,10 @@ public class BD implements Listener {
         if (e.getPlayer().getInventory().getItem(e.getNewSlot()) != null) {
             if (e.getPlayer().getInventory().getItem(e.getNewSlot()).getType() == Material.WARPED_FUNGUS_ON_A_STICK) {
                 BlockDisplay bd = (BlockDisplay) p.getWorld().spawn(p.getLocation(), BlockDisplay.class, (display) -> {
-                    display.setTransformation(new Transformation(new Vector3f(), new AxisAngle4f(), new Vector3f(), new AxisAngle4f()));
+                    display.setTransformation(new Transformation(new Vector3f(0.0F, 0.0F, 0.0F), new AxisAngle4f(), new Vector3f(27.0F, 12.0F, 47.0F), new AxisAngle4f()));
+
+
+
                 });
                 bd.setBlock(Material.BLUE_STAINED_GLASS.createBlockData());
 

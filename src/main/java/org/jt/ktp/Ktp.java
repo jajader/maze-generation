@@ -3,18 +3,24 @@ package org.jt.ktp;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.Material;
+import org.bukkit.block.Chest;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
+import org.bukkit.enchantments.Enchantment;
+import org.bukkit.entity.EnderPearl;
+import org.bukkit.entity.Item;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
+import org.bukkit.inventory.Inventory;
+import org.bukkit.inventory.ItemStack;
+import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.plugin.java.JavaPlugin;
+import org.bukkit.scheduler.BukkitRunnable;
 import org.jt.ktp.Listeners.BD;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.Random;
+import java.lang.reflect.Type;
+import java.util.*;
 
 public final class Ktp extends JavaPlugin implements Listener {
 
@@ -23,6 +29,7 @@ public final class Ktp extends JavaPlugin implements Listener {
         // Plugin startup logic
         Bukkit.getConsoleSender().sendMessage("NP Project enabled");
         getServer().getPluginManager().registerEvents(new BD(), this);
+        new db_connect().openConnection(this);
     }
 
     @Override
@@ -32,86 +39,130 @@ public final class Ktp extends JavaPlugin implements Listener {
 
     @Override
     public boolean onCommand(CommandSender sender, Command command, String Label, String[] args) {
-        if (!(command.getName().contains("Maze"))) return false;
-        if (!(sender instanceof Player)) return false;
         Player p = (Player) sender;
+        if (command.getName().equals("SW")) {
+            Map<Enchantment, Integer> enchantments;
+            enchantments = new HashMap<>();
+            for (Enchantment e : Enchantment.values()) {
+                if (Math.random()<0.05) {
+                    enchantments.put(e, new Random().nextInt(e.getMaxLevel())+1);
+                }
+            }
+
+            ItemStack sword = new ItemStack(Material.DIAMOND_SWORD);   //다이아몬드 검 생성
+            sword.addUnsafeEnchantments(enchantments);  //255레벨은 일반적인 수치가 아니니 addUnsafeEnchantments로 추가해야 한다.
+            ItemMeta swordMeta = sword.getItemMeta();   //검의 메타데이터
+            sword.setItemMeta(swordMeta);   //메타데이터 저장
+            p.getInventory().addItem(sword);
+        }
+
+        if (!(command.getName().equals("Maze"))) return false;
+        if (!(sender instanceof Player)) return false;
         ArrayList<Location> history = new ArrayList<>();
         HashMap<Location, Integer> history2 = new HashMap<>();
+        ArrayList<Location> ym = new ArrayList<>();
 
         Location lb = p.getLocation().getBlock().getLocation();
-        for (int i=0; i<49; i++) {
-            for (int k=0; k<29; k++) {
+        Location llb = lb.clone();
+        int rkfh = Integer.parseInt(args[0]);
+        int tpfh = Integer.parseInt(args[1]);
+
+
+        for (int td=0; td<5; td++) {
+            for (int i=0; i<rkfh; i++) {
+                for (int k=0; k<tpfh; k++) {
+                    Location bs = lb.clone();
+                    bs.setX(bs.getX()+k);
+                    bs.setY(bs.getY()+td);
+                    bs.setZ(bs.getZ()+i);
+                    bs.getBlock().setType(Material.REINFORCED_DEEPSLATE);
+                }
+            }
+        }
+
+        for (int i=0; i<rkfh+2; i++) {
+            for (int k=0; k<tpfh+2; k++) {
                 Location bs = lb.clone();
                 bs.setX(bs.getX()-1+k);
+                bs.setY(bs.getY()+1);
                 bs.setZ(bs.getZ()-1+i);
                 bs.getBlock().setType(Material.AIR);
             }
         }
 
-        for (int i=0; i<47; i++) {
-            for (int k=0; k<27; k++) {
+        for (int i=0; i<rkfh; i++) {
+            for (int k=0; k<tpfh; k++) {
                 Location bs = lb.clone();
                 bs.setX(bs.getX()+k);
+                bs.setY(bs.getY()+1);
                 bs.setZ(bs.getZ()+i);
                 bs.getBlock().setType(Material.REINFORCED_DEEPSLATE);
             }
         }
         Location fb = lb.clone();
         fb.setX(fb.getX()+1);
+        fb.setY(fb.getY()+1);
         fb.setZ(fb.getZ()+1);
         Location current = fb.clone();
         int[] checked = check(fb);
         fb.getBlock().setType(Material.AIR);
 
-        ArrayList cango = new ArrayList();
-        if (checked[0] == 1) cango.add(0);
-        if (checked[1] == 1) cango.add(1);
-        if (checked[2] == 1) cango.add(2);
-        if (checked[3] == 1) cango.add(3);
-
-        Random random = new Random();
-        int randomIndex = random.nextInt(cango.size());
-        int f = (int) cango.get(randomIndex);
-        history.add(current.clone());
-        history2.put(current, 1);
-        if (f==0) {
-            current.setZ(current.getZ()-1);
-            current.getBlock().setType(Material.AIR);
-            current.setZ(current.getZ()-1);
-            current.getBlock().setType(Material.AIR);
-        }
-        if (f==1) {
-            current.setX(current.getX()+1);
-            current.getBlock().setType(Material.AIR);
-            current.setX(current.getX()+1);
-            current.getBlock().setType(Material.AIR);
-
-        }
-        if (f==2) {
-            current.setZ(current.getZ()+1);
-            current.getBlock().setType(Material.AIR);
-            current.setZ(current.getZ()+1);
-            current.getBlock().setType(Material.AIR);
-        }
-
-        if (f==3) {
-            current.setX(current.getX()-1);
-            current.getBlock().setType(Material.AIR);
-            current.setX(current.getX()-1);
-            current.getBlock().setType(Material.AIR);
-
-        }
         history.add(current.clone());
         history2.put(current, 1);
         boolean ft =true;
-        while (ft) {
-            ft = next(current, p, history, history2);
+        final boolean[] end = {false};
+
+        final Location[] ran = new Location[1];
+
+        BukkitRunnable brun = new BukkitRunnable() {
+                boolean ft = true;
+            public void run() {
+                if (!ft) {
+
+                    for (int tfg=1; tfg<4; tfg++) {
+                        for (int i=0; i<rkfh+2; i++) {
+                            for (int k=0; k<tpfh+2; k++) {
+                                Location bs = llb.clone();
+                                bs.setX(bs.getX()+k-1);
+                                bs.setY(bs.getY()+1);
+                                bs.setZ(bs.getZ()+i-1);
+                                Location bbs = bs.clone();
+                                bbs.setY(bbs.getY()+tfg);
+                                bbs.getBlock().setType(bs.getBlock().getType());
+
+                            }
+                        }
+                    }
+
+                    int idx = new Random().nextInt(ym.size());
+                    ran[0] = ym.get(idx);
+                    end[0] = true;
+
+                    //Chest chest = (Chest) ran[0].getBlock().getState();
+//
+                    //chest.update(true);
+                    //chest.getBlockInventory().setItem(13, new ItemStack(Material.STONE));
+                    //chest.update();
+                    //Inventory inv = chest.getInventory();
+                    //inv.addItem(new ItemStack(Material.DARK_OAK_FENCE_GATE));
+
+
+                    //inv.addItem(sword);
+
+
+
+
+                    cancel();
+                }
+                ft = next(current, p, history, history2, ym);
+            }
+        };
+        brun.runTaskTimer(this, 0L, 0L);
+
+
+        if (end[0]) {
+            p.sendMessage(String.valueOf(ran[0]));
         }
-
-
-
-
-
 
 
 
@@ -167,7 +218,7 @@ public final class Ktp extends JavaPlugin implements Listener {
 
     }
 
-    public boolean next(Location current, Player p, ArrayList<Location> history, HashMap<Location, Integer> history2) {
+    public boolean next(Location current, Player p, ArrayList<Location> history, HashMap<Location, Integer> history2, ArrayList<Location> history3) {
         int[] checked = check(current);
 
         ArrayList cango = new ArrayList();
@@ -193,7 +244,8 @@ public final class Ktp extends JavaPlugin implements Listener {
                     //p.sendMessage(String.valueOf(cango.size()));
                     //p.sendMessage(String.valueOf(bac));
                     if (cango1.size() > 0) {
-                        next(bac, p, history, history2);
+                        history3.add(bac);
+                        next(bac, p, history, history2, history3);
                         return true;
                     }
                     history2.put(bac, 2);
@@ -241,6 +293,9 @@ public final class Ktp extends JavaPlugin implements Listener {
 
 
     }
+
+
+
 
 
 
